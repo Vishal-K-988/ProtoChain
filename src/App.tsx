@@ -1,23 +1,65 @@
-import { useRef } from "react";
-import { Cpu, ArrowRight, Code, Layers, Wallet, ChevronDown } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import React from "react";
+import ReactDOM from "react-dom";
+import {
+  AptosWalletAdapterProvider,
+  useWallet,
+} from "@aptos-labs/wallet-adapter-react";
+import { Network } from "@aptos-labs/ts-sdk";
+import {
+  Cpu,
+  ArrowRight,
+  Code,
+  Layers,
+  Wallet as WalletIcon,
+  ChevronDown,
+} from "lucide-react";
 
-function App() {
-  // Ref for the Contract Generator Section
+function AppContent() {
+  // Refs for scrolling to sections
   const contractSectionRef = useRef<HTMLElement | null>(null);
-
-  // Ref for the "Ready to Build Your Smart Contract?" CTA Section
   const ctaSectionRef = useRef<HTMLElement | null>(null);
 
-  // Scroll handlers
   const scrollToContractSection = () => {
-    if (contractSectionRef.current) {
-      contractSectionRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    contractSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const scrollToCTASection = () => {
-    if (ctaSectionRef.current) {
-      ctaSectionRef.current.scrollIntoView({ behavior: "smooth" });
+    ctaSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Wallet hook: get wallet data and methods.
+  const { wallet, account, connect, disconnect, connected } = useWallet();
+
+  // Left-click on button triggers connect (if not connected)
+  const handleConnect = async () => {
+    try {
+      if (!connected) {
+        await connect("Petra");
+      }
+    } catch (error) {
+      console.error("Wallet connection error:", error);
+    }
+  };
+
+  // Copy the wallet address to clipboard
+  const handleCopyAddress = async () => {
+    if (account) {
+      try {
+        await navigator.clipboard.writeText(account.address.toString());
+        alert("Address copied to clipboard!");
+      } catch (error) {
+        console.error("Failed to copy address:", error);
+      }
+    }
+  };
+
+  // Disconnect (logout) handler
+  const handleLogout = async () => {
+    try {
+      await disconnect();
+    } catch (error) {
+      console.error("Error disconnecting:", error);
     }
   };
 
@@ -30,24 +72,46 @@ function App() {
             <Cpu className="h-6 w-6" />
             <span className="text-xl font-bold">ProtoChain</span>
           </div>
-
-          {/* If you have nav items, place them here */}
           <nav className="hidden md:flex gap-6 items-center" />
-
-          {/* Header Buttons */}
           <div className="flex items-center space-x-2">
+            {/* Connect Wallet Button */}
             <button
+              onClick={handleConnect}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
                          ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2
                          focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none
                          disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground
                          h-10 px-4 py-2"
             >
-              <Wallet className="h-4 w-4" />
-              Connect Wallet
+              <WalletIcon className="h-4 w-4" />
+              {connected && account ? account.address.toString() : "Connect Wallet"}
             </button>
+
+            {/* Conditionally render Copy and Logout buttons if connected */}
+            {connected && account && (
+              <>
+                <button
+                  onClick={handleCopyAddress}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
+                             ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2
+                             focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground
+                             h-10 px-4 py-2"
+                >
+                  Copy Address
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
+                             ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2
+                             focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground
+                             h-10 px-4 py-2"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+
             <button
-            
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
                          ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2
                          focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none
@@ -75,7 +139,6 @@ function App() {
               </div>
               <div className="mx-auto w-full max-w-sm space-y-2">
                 <div className="flex space-x-2">
-                  {/* 1. Hero "Get Started" -> scrolls to contract generator */}
                   <button
                     onClick={scrollToContractSection}
                     className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
@@ -86,8 +149,6 @@ function App() {
                   >
                     Get Started
                   </button>
-
-                  {/* 2. Hero "Learn More" -> scrolls to CTA section */}
                   <button
                     onClick={scrollToCTASection}
                     className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
@@ -105,10 +166,7 @@ function App() {
         </section>
 
         {/* Contract Generator Section */}
-        <section
-          ref={contractSectionRef}
-          className="w-full py-12 md:py-24 lg:py-32 bg-muted/10"
-        >
+        <section ref={contractSectionRef} className="w-full py-12 md:py-24 lg:py-32 bg-muted/10">
           <div className="container px-4 md:px-6">
             <div className="mx-auto flex max-w-[58rem] flex-col items-center justify-center gap-4 text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -267,7 +325,7 @@ function App() {
                     "Deploy to multiple blockchains including Aptos and Polygon with the same simple interface.",
                 },
                 {
-                  icon: <Wallet className="h-10 w-10 text-primary" />,
+                  icon: <WalletIcon className="h-10 w-10 text-primary" />,
                   title: "Seamless Wallet Integration",
                   description:
                     "Connect your preferred wallet for a smooth deployment experience with maximum security.",
@@ -292,20 +350,19 @@ function App() {
           </div>
         </section>
 
-        {/* CTA: "Ready to Build Your Smart Contract?" */}
+        {/* CTA Section */}
         <section ref={ctaSectionRef} className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="mx-auto flex max-w-[58rem] flex-col items-center justify-center gap-4 text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Ready to Build More ?
+                Ready to Build More?
               </h2>
               <p className="max-w-[85%] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              <b>Create
-                </b> and <b>Deploy</b>  your frontend applications in real time with <b>Low-Code</b>. 
-              <br />
-Harness <b>AI</b>  to optimize code, streamline workflows, and accelerate innovation.
-<br />
-Leverage <b>Web3</b>  for secure, decentralized solutions that redefine the modern web.
+                <b>Create</b> and <b>Deploy</b> your frontend applications in real time with <b>Low-Code</b>.
+                <br />
+                Harness <b>AI</b> to optimize code, streamline workflows, and accelerate innovation.
+                <br />
+                Leverage <b>Web3</b> for secure, decentralized solutions that redefine the modern web.
               </p>
               <button
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium
@@ -314,7 +371,7 @@ Leverage <b>Web3</b>  for secure, decentralized solutions that redefine the mode
                            disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90
                            h-11 rounded-md px-8 mt-4"
               >
-                Build 
+                Build
               </button>
             </div>
           </div>
@@ -345,4 +402,25 @@ Leverage <b>Web3</b>  for secure, decentralized solutions that redefine the mode
   );
 }
 
+function App() {
+  return (
+    <AptosWalletAdapterProvider
+      autoConnect={true}
+      dappConfig={{
+        network: Network.MAINNET,
+        // Replace with your Aptos API key if required
+      }}
+      optInWallets={["Petra"]}
+      onError={(error: Error) => {
+        console.error("Wallet adapter error:", error);
+      }}
+    >
+      <AppContent />
+    </AptosWalletAdapterProvider>
+  );
+}
+
 export default App;
+
+// Render the App component (typically in index.tsx)
+ReactDOM.render(<App />, document.getElementById("root"));
