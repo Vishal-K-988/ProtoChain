@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
-import React from "react";
+import SmartContractChat from "./Component/chat";
+
 import ReactDOM from "react-dom";
 import {
   AptosWalletAdapterProvider,
@@ -186,7 +187,16 @@ function AppContent() {
                     Describe the functionality you need
                   </p>
                 </div>
-                <div className="p-6 pt-0">
+
+
+
+
+
+
+                {/* chat bot function is starting --- mere refernce ke liuye  */}
+
+               
+                {/* <div className="p-6 pt-0">
                   <div className="space-y-4">
                     <textarea
                       className="flex w-full rounded-md border border-input bg-background px-3
@@ -223,7 +233,15 @@ function AppContent() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </div> */}
+
+                <SmartContractChat/>
+
+
+
+
+{/* function yaha end ho rha h */}
+
               </div>
             </div>
           </div>
@@ -247,15 +265,7 @@ function AppContent() {
                   {[
                     {
                       title: "Select Your Wallet",
-                      description: (
-                        <>
-                          <p>Choose from three different wallets.</p>
-                          <ul className="list-disc list-inside ml-4 mt-2">
-                            <li>Aptos - Petra</li>
-                            <li>Polygon, Etherium - Phantom</li>
-                          </ul>
-                        </>
-                      ),
+                      description: "Aptos - Petra  \n Etherium, Polygon - Metamask "
                     },
                     {
                       title: "Describe Your Contract",
@@ -423,4 +433,4 @@ function App() {
 export default App;
 
 // Render the App component (typically in index.tsx)
-ReactDOM.render(<App />, document.getElementById("root"));
+
