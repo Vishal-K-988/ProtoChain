@@ -167,7 +167,7 @@ export default function SmartContractChat() {
               onClick={handleDeployClick}
               className="bg-tertiary text-tertiary-foreground px-4 py-2 rounded-md hover:bg-tertiary/90"
             >
-              Deployed
+              Deploy on Aptos 
             </button>
           </div>
         </div>

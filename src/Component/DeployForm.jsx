@@ -2,9 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { useLocation } from 'react-router-dom';
 import { Cpu } from "lucide-react";
+import { AptosClient } from 'aptos';
+// Import SyntaxHighlighter and the theme
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+
+// Helper function to parse a markdown code block.
+function parseCodeBlock(text) {
+  const regex = /```(\w+)\n([\s\S]*?)```/;
+  const match = regex.exec(text);
+  if (match) {
+    return { language: match[1], code: match[2] };
+  }
+  // Default to "move" if no language is specified.
+  return { language: 'move', code: text };
+}
 
 export default function DeployForm() {
-  const { account, connected } = useWallet();
+  const { account, connected, signTransaction } = useWallet();
   const { state } = useLocation();
   const [gasPrice, setGasPrice] = useState('');
   const [txId, setTxId] = useState('N/A');
@@ -20,7 +35,6 @@ export default function DeployForm() {
   // Simulate real-time gas price calculation.
   useEffect(() => {
     const interval = setInterval(() => {
-      // For simulation, gas price randomly changes around 100.
       setGasPrice((100 + Math.floor(Math.random() * 10)).toString());
     }, 5000);
     return () => clearInterval(interval);
@@ -31,12 +45,32 @@ export default function DeployForm() {
       alert("Please connect your wallet first.");
       return;
     }
-    // Trigger the wallet signing flow (simulate Petra popup).
-    alert("Please sign the transaction in your Petra wallet.");
-    const simulatedTxId = "0x" + Math.floor(Math.random() * 1e16).toString(16);
-    setTxId(simulatedTxId);
-    // TODO: Replace with your actual deployment logic using Aptos SDK.
+
+    try {
+      alert("Please sign the transaction in your wallet.");
+
+      const client = new AptosClient("https://fullnode.devnet.aptoslabs.com");
+
+      const payload = {
+        type: "script_function_payload",
+        function: "0x1::code::publish_package",
+        type_arguments: [],
+        arguments: [contract]
+      };
+
+      const txnRequest = await client.generateTransaction(account.address, payload);
+      const signedTxn = await signTransaction(txnRequest);
+      const txResult = await client.submitTransaction(signedTxn);
+      await client.waitForTransaction(txResult.hash);
+      setTxId(txResult.hash);
+    } catch (error) {
+      console.error("Deployment failed:", error);
+      alert("Deployment failed: " + error.message);
+    }
   };
+
+  // Parse the contract code for syntax highlighting.
+  const { language, code } = parseCodeBlock(contract);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground px-4">
@@ -62,7 +96,7 @@ export default function DeployForm() {
               </p>
             </div>
             <div className="rounded-lg border border-border bg-muted/5 p-4">
-              <h4 className="font-medium text-sm mb-2">Gas Price</h4>
+              <h4 className="font-medium text-sm mb-2">Gas Price (IN REAL-TIME -- 5s)</h4>
               <p className="text-sm text-muted-foreground bg-background/50 p-2 rounded">
                 {gasPrice || "Calculating..."}
               </p>
@@ -75,11 +109,14 @@ export default function DeployForm() {
             </div>
             <div className="rounded-lg border border-border bg-muted/5 p-4">
               <h4 className="font-medium text-sm mb-2">Contract Code</h4>
-              <textarea 
-                readOnly 
-                value={contract} 
-                className="bg-black text-white p-2 rounded w-full h-48 resize-none" 
-              />
+              {/* Render the contract code using SyntaxHighlighter */}
+              <SyntaxHighlighter
+                language={language}
+                style={atomOneDark}
+                customStyle={{ borderRadius: '0.375rem', border: '1px solid #4B5563', padding: '1rem', backgroundColor: 'black' }}
+              >
+                {code}
+              </SyntaxHighlighter>
             </div>
           </div>
           <div className="flex justify-center pt-4 border-t border-border">

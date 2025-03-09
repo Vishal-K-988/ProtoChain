@@ -17,7 +17,7 @@ export default function DeployedButton() {
                  focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50
                  bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
     >
-      Deployed
+      Deploy on Aptos
     </button>
   );
 }
