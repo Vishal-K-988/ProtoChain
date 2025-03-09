@@ -1,6 +1,5 @@
-import { useRef, useState, useEffect } from "react";
-import SmartContractChat from "./Component/chat";
-
+import { useRef } from "react";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ReactDOM from "react-dom";
 import {
   AptosWalletAdapterProvider,
@@ -16,10 +15,16 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+// Import components
+import SmartContractChat from "./Component/chat";
+
+import DeployedButton from "./Component/DeployedButton"
+import DeployForm from "./Component/DeployForm";
+
 function AppContent() {
-  // Refs for scrolling to sections
-  const contractSectionRef = useRef<HTMLElement | null>(null);
-  const ctaSectionRef = useRef<HTMLElement | null>(null);
+  // Refs for scrolling
+  const contractSectionRef = useRef<HTMLDivElement>(null);
+  const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   const scrollToContractSection = () => {
     contractSectionRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -32,7 +37,6 @@ function AppContent() {
   // Wallet hook: get wallet data and methods.
   const { wallet, account, connect, disconnect, connected } = useWallet();
 
-  // Left-click on button triggers connect (if not connected)
   const handleConnect = async () => {
     try {
       if (!connected) {
@@ -43,7 +47,6 @@ function AppContent() {
     }
   };
 
-  // Copy the wallet address to clipboard
   const handleCopyAddress = async () => {
     if (account) {
       try {
@@ -55,7 +58,6 @@ function AppContent() {
     }
   };
 
-  // Disconnect (logout) handler
   const handleLogout = async () => {
     try {
       await disconnect();
@@ -87,8 +89,6 @@ function AppContent() {
               <WalletIcon className="h-4 w-4" />
               {connected && account ? account.address.toString() : "Connect Wallet"}
             </button>
-
-            {/* Conditionally render Copy and Logout buttons if connected */}
             {connected && account && (
               <>
                 <button
@@ -111,15 +111,17 @@ function AppContent() {
                 </button>
               </>
             )}
-
             <button
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
                          ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2
                          focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none
-                         disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                         disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90
+                         h-10 px-4 py-2"
             >
               Documentation
             </button>
+            {/* Deployed Button (navigates to /deploy) */}
+            <DeployedButton />
           </div>
         </div>
       </header>
@@ -144,8 +146,8 @@ function AppContent() {
                     onClick={scrollToContractSection}
                     className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
                                ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2
-                               focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none
-                               disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90
+                               focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50
+                               bg-primary text-primary-foreground hover:bg-primary/90
                                h-10 px-4 py-2 w-full"
                   >
                     Get Started
@@ -154,9 +156,9 @@ function AppContent() {
                     onClick={scrollToCTASection}
                     className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium
                                ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2
-                               focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none
-                               disabled:opacity-50 border border-input bg-background hover:bg-accent
-                               hover:text-accent-foreground h-10 px-4 py-2 w-full"
+                               focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50
+                               border border-input bg-background hover:bg-accent hover:text-accent-foreground
+                               h-10 px-4 py-2 w-full"
                   >
                     Learn More
                   </button>
@@ -187,61 +189,7 @@ function AppContent() {
                     Describe the functionality you need
                   </p>
                 </div>
-
-
-
-
-
-
-                {/* chat bot function is starting --- mere refernce ke liuye  */}
-
-               
-                {/* <div className="p-6 pt-0">
-                  <div className="space-y-4">
-                    <textarea
-                      className="flex w-full rounded-md border border-input bg-background px-3
-                                 ring-offset-background file:border-0 file:bg-transparent file:text-sm
-                                 file:font-medium placeholder:text-muted-foreground focus-visible:outline-none
-                                 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-                                 disabled:cursor-not-allowed disabled:opacity-50 h-24 resize-none py-4 text-base"
-                      placeholder="Ask AI to build..  "
-                    />
-                    <div className="flex items-center gap-4">
-                      <div className="w-1/3">
-                        <div className="relative">
-                          <select
-                            className="flex h-10 w-full items-center justify-between rounded-md border border-input
-                                       bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none
-                                       focus:ring-2 focus:ring-ring focus:ring-offset-2 appearance-none"
-                          >
-                            <option>Aptos</option>
-                            <option>Polygon</option>
-                            <option>Ethereum</option>
-                          </select>
-                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 opacity-50 pointer-events-none" />
-                        </div>
-                      </div>
-                      <button
-                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium
-                                   ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2
-                                   focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none
-                                   disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90
-                                   h-10 px-4 py-2 flex-1 gap-2"
-                      >
-                        Generate Contract
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div> */}
-
-                <SmartContractChat/>
-
-
-
-
-{/* function yaha end ho rha h */}
-
+                <SmartContractChat />
               </div>
             </div>
           </div>
@@ -265,22 +213,19 @@ function AppContent() {
                   {[
                     {
                       title: "Select Your Wallet",
-                      description: "Aptos - Petra  \n Etherium, Polygon - Metamask "
+                      description: "Aptos - Petra  \n Etherium, Polygon - Metamask"
                     },
                     {
                       title: "Describe Your Contract",
-                      description:
-                        "Use natural language to describe what you want your smart contract to do.",
+                      description: "Use natural language to describe what you want your smart contract to do.",
                     },
                     {
                       title: "Select Your Blockchain",
-                      description:
-                        "Choose between Aptos, Polygon, or other supported blockchains.",
+                      description: "Choose between Aptos, Polygon, or other supported blockchains.",
                     },
                     {
                       title: "Deploy With One Click",
-                      description:
-                        "Connect your wallet and deploy your contract directly to the blockchain.",
+                      description: "Connect your wallet and deploy your contract directly to the blockchain.",
                     },
                   ].map((step, index) => (
                     <div key={index} className="flex items-start gap-4">
@@ -325,26 +270,20 @@ function AppContent() {
                 {
                   icon: <Code className="h-10 w-10 text-primary" />,
                   title: "AI-Powered Generation",
-                  description:
-                    "Our advanced AI understands your requirements and generates secure, optimized smart contract code.",
+                  description: "Our advanced AI understands your requirements and generates secure, optimized smart contract code.",
                 },
                 {
                   icon: <Layers className="h-10 w-10 text-primary" />,
                   title: "Multi-Chain Support",
-                  description:
-                    "Deploy to multiple blockchains including Aptos and Polygon with the same simple interface.",
+                  description: "Deploy to multiple blockchains including Aptos and Polygon with the same simple interface.",
                 },
                 {
                   icon: <WalletIcon className="h-10 w-10 text-primary" />,
                   title: "Seamless Wallet Integration",
-                  description:
-                    "Connect your preferred wallet for a smooth deployment experience with maximum security.",
+                  description: "Connect your preferred wallet for a smooth deployment experience with maximum security.",
                 },
               ].map((feature, index) => (
-                <div
-                  key={index}
-                  className="rounded-lg border bg-card text-card-foreground shadow-sm"
-                >
+                <div key={index} className="rounded-lg border bg-card text-card-foreground shadow-sm">
                   <div className="flex flex-col space-y-1.5 p-6">
                     {feature.icon}
                     <h3 className="text-2xl font-semibold leading-none tracking-tight mt-4">
@@ -377,9 +316,8 @@ function AppContent() {
               <button
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium
                            ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2
-                           focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none
-                           disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90
-                           h-11 rounded-md px-8 mt-4"
+                           focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50
+                           bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8 mt-4"
               >
                 Build
               </button>
@@ -417,20 +355,23 @@ function App() {
     <AptosWalletAdapterProvider
       autoConnect={true}
       dappConfig={{
-        network: Network.MAINNET,
-        // Replace with your Aptos API key if required
+        network: Network.TESTNET,
       }}
       optInWallets={["Petra"]}
       onError={(error: Error) => {
         console.error("Wallet adapter error:", error);
       }}
     >
-      <AppContent />
+      <Router>
+        <Routes>
+          <Route path="/" element={<AppContent />} />
+          <Route path="/deploy" element={<DeployForm />} />
+        </Routes>
+      </Router>
     </AptosWalletAdapterProvider>
   );
 }
 
 export default App;
 
-// Render the App component (typically in index.tsx)
-
+// Typically rendered in index.jsx with createRoot()
