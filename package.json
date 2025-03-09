@@ -10,9 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@aptos-labs/ts-sdk": "^1.35.0",
     "@aptos-labs/wallet-adapter-react": "^4.1.1",
     "@google/generative-ai": "^0.24.0",
+=======
+>>>>>>> parent of 1f6885b (added aptos wallet adapter -- 3:02am)
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
